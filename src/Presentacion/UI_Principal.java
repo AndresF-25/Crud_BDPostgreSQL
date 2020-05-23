@@ -5,7 +5,11 @@
  */
 package Presentacion;
 
+import Control.ConvertirMayusculas;
 import Control.Validaciones;
+import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -16,18 +20,61 @@ public class UI_Principal extends javax.swing.JFrame {
     /**
      * Creates new form UI_Principal
      */
-    
     Validaciones v = new Validaciones();
-    
-    
+
     public UI_Principal() {
+
         initComponents();
         setLocationRelativeTo(null);
-        v.ValidaSoloLetras(Jt_Nombre);
-        v.ValidaSoloLetras(Jt_Apellidos);
-        v.ValidaSoloLetras(Jt_Usuario);
-        v.valodarSoloNumeros(Jt_Cedula);
-        v.valodarSoloNumeros(Jt_Telefono);
+
+        v.SoloLetras(Jt_Nombre);
+        v.SoloLetras(Jt_Apellidos);
+        v.SoloLetras(Jt_Usuario);
+        v.SoloNumeros(Jt_Cedula);
+        v.SoloNumeros(Jt_Telefono);
+        v.LimitarCaracteres(Jt_Cedula, 13);
+        v.LimitarCaracteres(Jt_Nombre, 100);
+        v.LimitarCaracteres(Jt_Apellidos, 100);
+        v.LimitarCaracteres(Jt_Correo, 100);
+        v.LimitarCaracteres(Jt_Telefono, 10);
+        v.LimitarCaracteres(Jt_Usuario, 20);
+        v.LimitarCaracteres(Jp_Clave, 50);
+        Jt_Nombre.setDocument(new ConvertirMayusculas());
+        Jt_Apellidos.setDocument(new ConvertirMayusculas());
+        Jt_Buscar.setDocument(new ConvertirMayusculas());
+        Jt_Usuario.setDocument(new ConvertirMayusculas());
+    }
+
+    public boolean ValidarCorreo(String correo) {
+        Pattern pat;
+        Matcher mat;
+        pat = null;
+        mat = null;
+        pat = Pattern.compile("^([0-9a-zA-Z]([_.w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-w]*[0-9a-zA-Z].)+([a-zA-Z]{2,9}.)+[a-zA-Z]{2,3})$");
+        mat = pat.matcher(correo);
+
+        if (mat.find()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void ValidarIngreso() {
+        String cc = Jt_Cedula.getText().trim();
+        String nom = Jt_Nombre.getText().trim();
+        String ape = Jt_Apellidos.getText().trim();
+        String tel = Jt_Telefono.getText().trim();
+        String user = Jt_Usuario.getText().trim();
+        String cla = Jp_Clave.getText();
+        boolean estado = ValidarCorreo(Jt_Correo.getText());
+        Date fec = jDate_Fecha.getDate();
+
+        if (cc.isEmpty() || nom.isEmpty() || ape.isEmpty() || tel.isEmpty() || user.isEmpty()|| cla.isEmpty() || estado == false || fec == null) {
+            Btn_Guardar.setEnabled(false);
+        } else {
+            Btn_Guardar.setEnabled(true);
+        }
     }
 
     /**
@@ -142,15 +189,39 @@ public class UI_Principal extends javax.swing.JFrame {
 
         Jl_Cedula.setText("Cedula");
         jPanel1.add(Jl_Cedula, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 17, 99, 30));
+
+        Jt_Cedula.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_CedulaCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Cedula, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 17, 375, 30));
 
         Jl_Nombre.setText("Nombre");
         jPanel1.add(Jl_Nombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 53, 99, 30));
+
+        Jt_Nombre.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_NombreCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Nombre, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 53, 375, 30));
 
         Jl_Apellidos.setText("Apellidos");
         jPanel1.add(Jl_Apellidos, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 89, 99, 30));
+
+        Jt_Apellidos.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_ApellidosCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Apellidos, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 89, 375, 30));
+
+        Jt_Correo.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_CorreoCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Correo, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 125, 375, 30));
 
         Jl_Correo.setText("Correo");
@@ -158,18 +229,42 @@ public class UI_Principal extends javax.swing.JFrame {
 
         Jl_Telefono.setText("Telefono");
         jPanel1.add(Jl_Telefono, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 161, 99, 30));
+
+        Jt_Telefono.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_TelefonoCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Telefono, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 161, 375, 30));
 
         Jl_Usuario.setText("Usuario");
         jPanel1.add(Jl_Usuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 197, 99, 30));
+
+        Jt_Usuario.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_UsuarioCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jt_Usuario, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 197, 375, 30));
 
         Jl_FechaNacimiento.setText("Fecha de nacimiento");
         jPanel1.add(Jl_FechaNacimiento, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 271, 280, 30));
+
+        Jp_Clave.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jp_ClaveCaretUpdate(evt);
+            }
+        });
         jPanel1.add(Jp_Clave, new org.netbeans.lib.awtextra.AbsoluteConstraints(304, 233, 375, 30));
 
         Jl_Clave1.setText("Contraseña");
         jPanel1.add(Jl_Clave1, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 240, 99, -1));
+
+        jDate_Fecha.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                jDate_FechaPropertyChange(evt);
+            }
+        });
         jPanel1.add(jDate_Fecha, new org.netbeans.lib.awtextra.AbsoluteConstraints(479, 271, 200, 30));
 
         Btn_Nuevo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Add.png"))); // NOI18N
@@ -178,10 +273,12 @@ public class UI_Principal extends javax.swing.JFrame {
 
         Btn_Guardar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Save.png"))); // NOI18N
         Btn_Guardar.setText("Guardar");
+        Btn_Guardar.setEnabled(false);
         jPanel1.add(Btn_Guardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 325, 120, 30));
 
         Btn_Eliminar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Delete.png"))); // NOI18N
         Btn_Eliminar.setText("Eliminar");
+        Btn_Eliminar.setEnabled(false);
         jPanel1.add(Btn_Eliminar, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 325, 120, 30));
 
         jTabbedPane1.addTab("Usuarios", jPanel1);
@@ -203,6 +300,38 @@ public class UI_Principal extends javax.swing.JFrame {
     private void Btn_SubirFotoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_SubirFotoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_Btn_SubirFotoActionPerformed
+
+    private void Jt_CedulaCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_CedulaCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_CedulaCaretUpdate
+
+    private void Jt_NombreCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_NombreCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_NombreCaretUpdate
+
+    private void Jt_ApellidosCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_ApellidosCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_ApellidosCaretUpdate
+
+    private void Jt_CorreoCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_CorreoCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_CorreoCaretUpdate
+
+    private void Jt_TelefonoCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_TelefonoCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_TelefonoCaretUpdate
+
+    private void Jt_UsuarioCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_UsuarioCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jt_UsuarioCaretUpdate
+
+    private void Jp_ClaveCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jp_ClaveCaretUpdate
+        ValidarIngreso();
+    }//GEN-LAST:event_Jp_ClaveCaretUpdate
+
+    private void jDate_FechaPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jDate_FechaPropertyChange
+        ValidarIngreso();
+    }//GEN-LAST:event_jDate_FechaPropertyChange
 
     /**
      * @param args the command line arguments
