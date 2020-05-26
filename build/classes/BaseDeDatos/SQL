@@ -1,0 +1,23 @@
+create sequence usuario_sec;
+
+create table usuarios(
+idusuario int default nextval('usuario_sec') primary key,
+cedula varchar(15) not null,
+nombre varchar(100) not null,
+apellido varchar (100) not null,
+correo varchar (100) not null,
+telefono varchar (10) not null,
+usuario varchar (20) not null,
+clave varchar (50) not null,
+fecha Date not null,
+foto Bytea not null,
+estado int default 1
+);
+
+INSERT INTO public.usuarios(cedula, nombre, apellido,
+	correo, telefono, usuario, clave, fecha)
+VALUES ('1078580505', 'OMAR', 'DIAZ', 'omardiazguerra@gmail.com',
+	'3046274667','OMAR.DIAZ', 'qwerty', '1995-09-14');
+
+select idusuario, cedula, nombre, apellido, correo
+from usuarios where estado=1 order by nombre asc

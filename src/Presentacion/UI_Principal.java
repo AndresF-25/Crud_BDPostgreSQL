@@ -1,38 +1,56 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package Presentacion;
 
+import Control.BLLUsuario;
 import Control.ConvertirMayusculas;
 import Control.Validaciones;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.table.DefaultTableModel;
 
-/**
- *
- * @author omard
- */
 public class UI_Principal extends javax.swing.JFrame {
 
-    /**
-     * Creates new form UI_Principal
-     */
     Validaciones v = new Validaciones();
+    DefaultTableModel modelo_tabla;
+    BLLUsuario bll = new BLLUsuario();
 
     public UI_Principal() {
-
         initComponents();
         setLocationRelativeTo(null);
+        metodosdeInicio();
+        
+        modelo_tabla = new DefaultTableModel() {
+            //para que las filas no sean editables
+            @Override
+            public boolean isCellEditable(int fila, int columna) {
+                return false;
+            }
+        };
+        
+        Tbl_Datos.setModel(modelo_tabla);
+        modelo_tabla.addColumn("Id");
+        modelo_tabla.addColumn("Cedula");
+        modelo_tabla.addColumn("Nombre");
+        modelo_tabla.addColumn("Apellido");
+        modelo_tabla.addColumn("Correo");
+        bll.mostrarLista(modelo_tabla, Tbl_Datos);
+        //para que las columnas no se muevan
+        Tbl_Datos.getTableHeader().setReorderingAllowed(false);
+        Tbl_Datos.getColumnModel().getColumn(0).setMaxWidth(0);
+        Tbl_Datos.getColumnModel().getColumn(0).setMinWidth(0);
+        Tbl_Datos.getColumnModel().getColumn(0).setPreferredWidth(0);
+       
+
+    }
+
+    public final void metodosdeInicio() {
 
         v.SoloLetras(Jt_Nombre);
         v.SoloLetras(Jt_Apellidos);
         v.SoloLetras(Jt_Usuario);
         v.SoloNumeros(Jt_Cedula);
         v.SoloNumeros(Jt_Telefono);
-        v.LimitarCaracteres(Jt_Cedula, 13);
+        v.LimitarCaracteres(Jt_Cedula, 15);
         v.LimitarCaracteres(Jt_Nombre, 100);
         v.LimitarCaracteres(Jt_Apellidos, 100);
         v.LimitarCaracteres(Jt_Correo, 100);
@@ -43,6 +61,7 @@ public class UI_Principal extends javax.swing.JFrame {
         Jt_Apellidos.setDocument(new ConvertirMayusculas());
         Jt_Buscar.setDocument(new ConvertirMayusculas());
         Jt_Usuario.setDocument(new ConvertirMayusculas());
+
     }
 
     public boolean ValidarCorreo(String correo) {
@@ -70,7 +89,7 @@ public class UI_Principal extends javax.swing.JFrame {
         boolean estado = ValidarCorreo(Jt_Correo.getText());
         Date fec = jDate_Fecha.getDate();
 
-        if (cc.isEmpty() || nom.isEmpty() || ape.isEmpty() || tel.isEmpty() || user.isEmpty()|| cla.isEmpty() || estado == false || fec == null) {
+        if (cc.isEmpty() || nom.isEmpty() || ape.isEmpty() || tel.isEmpty() || user.isEmpty() || cla.isEmpty() || estado == false || fec == null) {
             Btn_Guardar.setEnabled(false);
         } else {
             Btn_Guardar.setEnabled(true);
@@ -117,11 +136,12 @@ public class UI_Principal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jTabbedPane1.setBackground(new java.awt.Color(255, 255, 255));
         jTabbedPane1.setToolTipText("");
+        jTabbedPane1.setFocusable(false);
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
 
-        Tbl_Datos.setBackground(new java.awt.Color(255, 255, 255));
         Tbl_Datos.setForeground(new java.awt.Color(51, 51, 51));
         Tbl_Datos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -139,7 +159,6 @@ public class UI_Principal extends javax.swing.JFrame {
         Jl_Buscar.setForeground(new java.awt.Color(51, 51, 51));
         Jl_Buscar.setText("Buscar");
 
-        Jt_Buscar.setBackground(new java.awt.Color(255, 255, 255));
         Jt_Buscar.setForeground(new java.awt.Color(51, 51, 51));
         Jt_Buscar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
 
@@ -260,6 +279,7 @@ public class UI_Principal extends javax.swing.JFrame {
         Jl_Clave1.setText("Contraseña");
         jPanel1.add(Jl_Clave1, new org.netbeans.lib.awtextra.AbsoluteConstraints(187, 240, 99, -1));
 
+        jDate_Fecha.setBackground(new java.awt.Color(255, 255, 255));
         jDate_Fecha.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
                 jDate_FechaPropertyChange(evt);
@@ -287,7 +307,7 @@ public class UI_Principal extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
