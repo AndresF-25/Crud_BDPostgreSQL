@@ -3,17 +3,32 @@ package Presentacion;
 import Control.BLLUsuario;
 import Control.ConvertirMayusculas;
 import Control.Validaciones;
+import Datos.Usuarios;
+import java.awt.Image;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 public class UI_Principal extends javax.swing.JFrame {
-
+    
     Validaciones v = new Validaciones();
     DefaultTableModel modelo_tabla;
     BLLUsuario bll = new BLLUsuario();
-
+    FileInputStream fis;
+    int longitudBytes, apretaFoto = 0, id = 0;
+    boolean consultar = false;
+    Usuarios u = new Usuarios();
+    
     public UI_Principal() {
         initComponents();
         setLocationRelativeTo(null);
@@ -21,6 +36,7 @@ public class UI_Principal extends javax.swing.JFrame {
         
         modelo_tabla = new DefaultTableModel() {
             //para que las filas no sean editables
+            
             @Override
             public boolean isCellEditable(int fila, int columna) {
                 return false;
@@ -39,12 +55,11 @@ public class UI_Principal extends javax.swing.JFrame {
         Tbl_Datos.getColumnModel().getColumn(0).setMaxWidth(0);
         Tbl_Datos.getColumnModel().getColumn(0).setMinWidth(0);
         Tbl_Datos.getColumnModel().getColumn(0).setPreferredWidth(0);
-       
-
+        
     }
-
+    
     public final void metodosdeInicio() {
-
+        
         v.SoloLetras(Jt_Nombre);
         v.SoloLetras(Jt_Apellidos);
         v.SoloLetras(Jt_Usuario);
@@ -61,9 +76,9 @@ public class UI_Principal extends javax.swing.JFrame {
         Jt_Apellidos.setDocument(new ConvertirMayusculas());
         Jt_Buscar.setDocument(new ConvertirMayusculas());
         Jt_Usuario.setDocument(new ConvertirMayusculas());
-
+        
     }
-
+    
     public boolean ValidarCorreo(String correo) {
         Pattern pat;
         Matcher mat;
@@ -71,14 +86,14 @@ public class UI_Principal extends javax.swing.JFrame {
         mat = null;
         pat = Pattern.compile("^([0-9a-zA-Z]([_.w]*[0-9a-zA-Z])*@([0-9a-zA-Z][-w]*[0-9a-zA-Z].)+([a-zA-Z]{2,9}.)+[a-zA-Z]{2,3})$");
         mat = pat.matcher(correo);
-
+        
         if (mat.find()) {
             return true;
         } else {
             return false;
         }
     }
-
+    
     public void ValidarIngreso() {
         String cc = Jt_Cedula.getText().trim();
         String nom = Jt_Nombre.getText().trim();
@@ -88,11 +103,126 @@ public class UI_Principal extends javax.swing.JFrame {
         String cla = Jp_Clave.getText();
         boolean estado = ValidarCorreo(Jt_Correo.getText());
         Date fec = jDate_Fecha.getDate();
-
+        
         if (cc.isEmpty() || nom.isEmpty() || ape.isEmpty() || tel.isEmpty() || user.isEmpty() || cla.isEmpty() || estado == false || fec == null) {
             Btn_Guardar.setEnabled(false);
         } else {
             Btn_Guardar.setEnabled(true);
+        }
+    }
+    
+    public void cargarFoto() {
+        
+        JFileChooser j = new JFileChooser();
+        FileNameExtensionFilter filto = new FileNameExtensionFilter("JPG & PNG", "jpg", "png");
+        j.setFileFilter(filto);
+        
+        int estado = j.showOpenDialog(null);
+        if (estado == JFileChooser.APPROVE_OPTION) {
+            
+            try {
+                fis = new FileInputStream(j.getSelectedFile());
+                this.longitudBytes = (int) j.getSelectedFile().length();
+                
+                try {
+                    Jl_Foto.setIcon(null);
+                    Image icono = ImageIO.read(j.getSelectedFile()).getScaledInstance(
+                            Jl_Foto.getWidth(), Jl_Foto.getHeight(), Image.SCALE_DEFAULT);
+                    Jl_Foto.setIcon(new ImageIcon(icono));
+                    Jl_Foto.updateUI();
+                    apretaFoto = 1;
+                    System.out.println("Longutud de bytes: " + longitudBytes);
+                    
+                } catch (IOException e) {
+                    System.out.println("Error a cargar la foto IO: " + e);
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("Error a cargar file: " + e);
+            }
+            
+        } else {
+        }
+        
+    } 
+    
+    public void botonGuardar() {
+        
+        String cedula = Jt_Cedula.getText().trim();
+        String nombre = Jt_Nombre.getText().trim();
+        String apellidos = Jt_Apellidos.getText().trim();
+        String correo = Jt_Correo.getText().trim();
+        String telefono = Jt_Telefono.getText().trim();
+        String usuario = Jt_Usuario.getText().trim();
+        String clave = Jp_Clave.getText();
+        Date fecha = jDate_Fecha.getDate();
+        u.setIdusuario(id);
+        u.setCedula(cedula);
+        u.setNombre(nombre);
+        u.setApellido(apellidos);
+        u.setCorreo(correo);
+        u.setTelefono(telefono);
+        u.setUsuario(usuario);
+        u.setClave(clave);
+        u.setFecha(fecha);
+        u.setFis(fis);
+        u.setLongitudBytes(longitudBytes);
+        
+        if (consultar == false) {
+            //Insertar datos
+            bll.insertarDatos(u);
+            limpiarTodo();
+        } else if (consultar == true) {
+            //modificar datos
+            if (apretaFoto == 0) {
+                bll.modificarDatosSinFoto(u);
+            } else if (apretaFoto == 1) {
+                bll.modificarDatosConFoto(u);
+            }
+            limpiarTodo();
+        }
+        
+    }
+    
+    public void actualizarTabla() {
+
+        //limpiar tabla
+        while (modelo_tabla.getRowCount() > 0) {
+            modelo_tabla.removeRow(0);
+        }
+        //Cargar tabla
+        bll.mostrarLista(modelo_tabla, Tbl_Datos);
+        
+    }
+    
+    public void limpiarTodo() {
+        
+        Jt_Cedula.setText(null);
+        Jt_Nombre.setText(null);
+        Jt_Apellidos.setText(null);
+        Jt_Correo.setText(null);
+        Jt_Telefono.setText(null);
+        Jt_Usuario.setText(null);
+        Jp_Clave.setText(null);
+        jDate_Fecha.setDate(null);
+        Jl_Foto.setIcon(null);
+        Btn_Guardar.setEnabled(false);
+        Btn_Eliminar.setEnabled(false);
+        apretaFoto = 0;
+        consultar = false;
+        actualizarTabla();
+        
+    }
+    
+    public void buscar() {
+        String dato = Jt_Buscar.getText();
+        
+        if (dato.isEmpty()) {
+            actualizarTabla();
+        } else if (!dato.isEmpty()) {
+            while (modelo_tabla.getRowCount() > 0) {
+                modelo_tabla.removeRow(0);
+            }
+            bll.buscarLista(modelo_tabla, Tbl_Datos, dato);
         }
     }
 
@@ -105,7 +235,7 @@ public class UI_Principal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        panel = new javax.swing.JTabbedPane();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         Tbl_Datos = new javax.swing.JTable();
@@ -136,9 +266,9 @@ public class UI_Principal extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jTabbedPane1.setBackground(new java.awt.Color(255, 255, 255));
-        jTabbedPane1.setToolTipText("");
-        jTabbedPane1.setFocusable(false);
+        panel.setBackground(new java.awt.Color(255, 255, 255));
+        panel.setToolTipText("");
+        panel.setFocusable(false);
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -154,6 +284,11 @@ public class UI_Principal extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        Tbl_Datos.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Tbl_DatosMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(Tbl_Datos);
 
         Jl_Buscar.setForeground(new java.awt.Color(51, 51, 51));
@@ -161,6 +296,11 @@ public class UI_Principal extends javax.swing.JFrame {
 
         Jt_Buscar.setForeground(new java.awt.Color(51, 51, 51));
         Jt_Buscar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153)));
+        Jt_Buscar.addCaretListener(new javax.swing.event.CaretListener() {
+            public void caretUpdate(javax.swing.event.CaretEvent evt) {
+                Jt_BuscarCaretUpdate(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -172,8 +312,8 @@ public class UI_Principal extends javax.swing.JFrame {
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 666, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(Jl_Buscar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(Jt_Buscar, javax.swing.GroupLayout.PREFERRED_SIZE, 558, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(Jt_Buscar, javax.swing.GroupLayout.PREFERRED_SIZE, 570, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(17, 17, 17))
         );
         jPanel2Layout.setVerticalGroup(
@@ -185,10 +325,10 @@ public class UI_Principal extends javax.swing.JFrame {
                     .addComponent(Jl_Buscar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(15, Short.MAX_VALUE))
+                .addContainerGap(11, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("Lista de usuarios", jPanel2);
+        panel.addTab("Lista de usuarios", jPanel2);
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -289,36 +429,53 @@ public class UI_Principal extends javax.swing.JFrame {
 
         Btn_Nuevo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Add.png"))); // NOI18N
         Btn_Nuevo.setText("Nuevo");
+        Btn_Nuevo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Btn_NuevoActionPerformed(evt);
+            }
+        });
         jPanel1.add(Btn_Nuevo, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 325, 120, 30));
 
         Btn_Guardar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Save.png"))); // NOI18N
         Btn_Guardar.setText("Guardar");
         Btn_Guardar.setEnabled(false);
+        Btn_Guardar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Btn_GuardarActionPerformed(evt);
+            }
+        });
         jPanel1.add(Btn_Guardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(560, 325, 120, 30));
 
         Btn_Eliminar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Imagenes/Delete.png"))); // NOI18N
         Btn_Eliminar.setText("Eliminar");
         Btn_Eliminar.setEnabled(false);
+        Btn_Eliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                Btn_EliminarActionPerformed(evt);
+            }
+        });
         jPanel1.add(Btn_Eliminar, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 325, 120, 30));
 
-        jTabbedPane1.addTab("Usuarios", jPanel1);
+        panel.addTab("Usuarios", jPanel1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(panel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 399, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(panel, javax.swing.GroupLayout.PREFERRED_SIZE, 399, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void Btn_SubirFotoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_SubirFotoActionPerformed
-        // TODO add your handling code here:
+        
+        cargarFoto();
+
     }//GEN-LAST:event_Btn_SubirFotoActionPerformed
 
     private void Jt_CedulaCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_CedulaCaretUpdate
@@ -352,6 +509,63 @@ public class UI_Principal extends javax.swing.JFrame {
     private void jDate_FechaPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jDate_FechaPropertyChange
         ValidarIngreso();
     }//GEN-LAST:event_jDate_FechaPropertyChange
+
+    private void Btn_GuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_GuardarActionPerformed
+        
+        botonGuardar();
+
+    }//GEN-LAST:event_Btn_GuardarActionPerformed
+
+    private void Jt_BuscarCaretUpdate(javax.swing.event.CaretEvent evt) {//GEN-FIRST:event_Jt_BuscarCaretUpdate
+        
+        buscar();
+
+    }//GEN-LAST:event_Jt_BuscarCaretUpdate
+
+    private void Tbl_DatosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_Tbl_DatosMouseClicked
+        
+        if (evt.getClickCount() == 2) {
+            
+            consultar = true;
+            int fila = Tbl_Datos.getSelectedRow();
+            id = (int) Tbl_Datos.getValueAt(fila, 0);
+            Object[] datos = bll.consultarPorId(id, Jl_Foto);
+            
+            Jt_Cedula.setText(datos[0].toString());
+            Jt_Nombre.setText(datos[1].toString());
+            Jt_Apellidos.setText(datos[2].toString());
+            Jt_Correo.setText(datos[3].toString());
+            Jt_Telefono.setText(datos[4].toString());
+            Jt_Usuario.setText(datos[5].toString());
+            Jp_Clave.setText(datos[6].toString());
+            jDate_Fecha.setDate((Date) datos[7]);
+            try {
+                Jl_Foto.setIcon((Icon) datos[8]);
+            } catch (Exception e) {
+            }
+            panel.setSelectedIndex(1);
+            Btn_Eliminar.setEnabled(true);
+        } else {
+        }
+
+    }//GEN-LAST:event_Tbl_DatosMouseClicked
+
+    private void Btn_NuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_NuevoActionPerformed
+
+        limpiarTodo();
+        
+    }//GEN-LAST:event_Btn_NuevoActionPerformed
+
+    private void Btn_EliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_Btn_EliminarActionPerformed
+
+        int respues = JOptionPane.showConfirmDialog(null, "¿Eliminar usuario?");
+        if (respues==0) {
+            u.setIdusuario(id);
+            bll.eliminarDatos(u);
+            limpiarTodo();
+        } 
+        
+    }//GEN-LAST:event_Btn_EliminarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -416,6 +630,6 @@ public class UI_Principal extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane panel;
     // End of variables declaration//GEN-END:variables
 }
