@@ -31,6 +31,7 @@ public class UI_Principal extends javax.swing.JFrame {
     
     public UI_Principal() {
         initComponents();
+        setIconImage(new ImageIcon(getClass().getResource("../Imagenes/Icono.png")).getImage());
         setLocationRelativeTo(null);
         metodosdeInicio();
         
@@ -265,6 +266,8 @@ public class UI_Principal extends javax.swing.JFrame {
         Btn_Eliminar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Gestión de usuarios");
+        setResizable(false);
 
         panel.setBackground(new java.awt.Color(255, 255, 255));
         panel.setToolTipText("");
